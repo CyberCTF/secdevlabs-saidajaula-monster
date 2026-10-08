@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://www.isoloom.com/schema/v1.json
+# SaidaJaula Monster Fit (secDevLabs, by Globo.com) as an Isoloom spec: a Flask gym site whose
+# session cookie is a forgeable JSON document, an Identification and Authentication Failure.
+# Vendored unchanged from the app folder owasp-top10-2021-apps/a7/saidajaula-monster of
+# secDevLabs (build/app/app/, its db/ in build/db/app/), built by an overlay of upstream's
+# Dockerfile, with its MariaDB machine. `isoloom generate`, then `isoloom up docker`.
+version: 1
+name: secdevlabs-saidajaula-monster
+
+networks:
+  lab: { cidr: 10.60.107.0/24, internet: false }
+
+machines:
+  db:
+    networks: { lab: 20 }
+    services: [{ port: 3306, name: mariadb }]
+    resources: { cpus: 1, memory_mb: 512 }
+    volumes: { data: /var/lib/mysql }
+    docker:
+      build: build/db
+
+  app:
+    networks: { lab: 10 }
+    services: [{ port: 10002, name: web, http: true, publish: 10002 }]
+    resources: { cpus: 1, memory_mb: 512 }
+    depends_on: [db]
+    docker:
+      build: build/app
+
+checks:
+  - name: the home page answers
+    http: http://app:10002/
+    wait: 180
+  - name: the session cookie carries the permission level in clear
+    script: checks/session.sh
+    wait: 60
+
+message: |
+  SaidaJaula Monster Fit answers at http://localhost:{{ machines.app.services.0.publish }}/.
+  Register, log in, and decode the cookie you get. /admin is for admins only.

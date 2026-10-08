@@ -1,0 +1,216 @@
+{
+  "generated_by_isoloom": "from isoloom.yml; don't edit: change the spec and run `isoloom generate` (`isoloom check` fails when this file is out of date)",
+  "resolved_version": 1,
+  "name": "secdevlabs-saidajaula-monster",
+  "instance": null,
+  "inputs": [],
+  "networks": {
+    "lab": {
+      "cidr": "10.60.107.0/24",
+      "docker_cidr": "10.60.107.0/24",
+      "internet": false,
+      "gateway": null,
+      "gateway_address": "10.60.107.1",
+      "router": null,
+      "controller": "10.60.107.253"
+    }
+  },
+  "reach": [],
+  "machines": {
+    "db": {
+      "access": false,
+      "supplied": false,
+      "shapes": [
+        "docker"
+      ],
+      "arch": "amd64",
+      "os": null,
+      "windows": false,
+      "addresses": {
+        "lab": "10.60.107.20"
+      },
+      "docker_addresses": {
+        "lab": "10.60.107.20"
+      },
+      "services": [
+        {
+          "port": 3306,
+          "name": "mariadb",
+          "http": false,
+          "publish": null
+        }
+      ],
+      "depends_on": [],
+      "inputs": [],
+      "volumes": {
+        "data": "/var/lib/mysql"
+      },
+      "resources": {
+        "cpus": 1,
+        "memory_mb": 512,
+        "disk_gb": 20
+      },
+      "gateway_of": [],
+      "routes": [],
+      "default_gateway": null,
+      "offline": true
+    },
+    "app": {
+      "access": false,
+      "supplied": false,
+      "shapes": [
+        "docker"
+      ],
+      "arch": "amd64",
+      "os": null,
+      "windows": false,
+      "addresses": {
+        "lab": "10.60.107.10"
+      },
+      "docker_addresses": {
+        "lab": "10.60.107.10"
+      },
+      "services": [
+        {
+          "port": 10002,
+          "name": "web",
+          "http": true,
+          "publish": 10002
+        }
+      ],
+      "depends_on": [
+        "db"
+      ],
+      "inputs": [],
+      "volumes": {},
+      "resources": {
+        "cpus": 1,
+        "memory_mb": 512,
+        "disk_gb": 20
+      },
+      "gateway_of": [],
+      "routes": [],
+      "default_gateway": null,
+      "offline": true
+    }
+  },
+  "start_order": [
+    "db",
+    "app"
+  ],
+  "clones": {},
+  "tools": {},
+  "groups": {},
+  "router": null,
+  "controller": {
+    "addresses": {
+      "lab": "10.60.107.253"
+    }
+  },
+  "published": [
+    {
+      "machine": "app",
+      "port": 10002,
+      "host_port": 10002
+    }
+  ],
+  "targets": {
+    "possible": [
+      "docker",
+      "hosted",
+      "docker-vm",
+      "cloud-docker",
+      "kubernetes"
+    ],
+    "generated": [
+      "docker",
+      "hosted",
+      "docker-vm",
+      "cloud-docker",
+      "kubernetes"
+    ],
+    "refused": {},
+    "not_possible": {
+      "hybrid": "only when some machines are containers and others are VMs",
+      "vagrant": "needs `vm:` on db, app",
+      "proxmox": "needs `vm:` on db, app",
+      "cloud-vm": "needs `vm:` on db, app",
+      "external": "needs `external:` on db, app"
+    }
+  },
+  "checks": {
+    "default_position": "networks",
+    "positions": [
+      {
+        "position": "networks",
+        "machine": null,
+        "runner": "isoloom-check",
+        "checks": [
+          {
+            "name": "the home page answers",
+            "derived": false,
+            "kind": "http",
+            "target": "http://app:10002/",
+            "expect": "200",
+            "wait": 180
+          },
+          {
+            "name": "the session cookie carries the permission level in clear",
+            "derived": false,
+            "kind": "script",
+            "target": "checks/session.sh",
+            "expect": "",
+            "wait": 60
+          }
+        ]
+      },
+      {
+        "position": "db",
+        "machine": "db",
+        "runner": "isoloom-check-db",
+        "checks": [
+          {
+            "name": "app:10002 from db",
+            "derived": true,
+            "kind": "http",
+            "target": "http://10.60.107.10:10002/",
+            "expect": "any",
+            "wait": 30
+          },
+          {
+            "name": "no internet from db",
+            "derived": true,
+            "kind": "http",
+            "target": "http://1.1.1.1/",
+            "expect": "blocked",
+            "wait": 0
+          }
+        ]
+      },
+      {
+        "position": "app",
+        "machine": "app",
+        "runner": "isoloom-check-app",
+        "checks": [
+          {
+            "name": "db:3306 from app",
+            "derived": true,
+            "kind": "tcp",
+            "target": "10.60.107.20:3306",
+            "expect": "open",
+            "wait": 30
+          },
+          {
+            "name": "no internet from app",
+            "derived": true,
+            "kind": "http",
+            "target": "http://1.1.1.1/",
+            "expect": "blocked",
+            "wait": 0
+          }
+        ]
+      }
+    ]
+  },
+  "message": "SaidaJaula Monster Fit answers at http://localhost:10002/.\nRegister, log in, and decode the cookie you get. /admin is for admins only.\n"
+}
