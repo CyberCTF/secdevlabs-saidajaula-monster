@@ -4,11 +4,5 @@
   "question": "Forge a session cookie that makes the site treat you as an admin, and open /admin.",
   "category": "WEB",
   "difficulty": 2,
-  "evidence_kind": "SECRET",
-  "capabilities": [
-    "authentication-failure",
-    "session-forgery",
-    "privilege-escalation",
-    "cookie-tampering"
-  ]
+  "evidence_kind": "SECRET"
 }
