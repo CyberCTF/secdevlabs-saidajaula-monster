@@ -1,0 +1,42 @@
+{
+  "objectives": [
+    {
+      "key": "main",
+      "title": "Read the flag",
+      "prompt": "Forge an admin session and retrieve the flag (/ctf/flag).",
+      "check": {
+        "evidence": "SECRET",
+        "format": "FLAG{%s}"
+      },
+      "dev": "FLAG{dev-secdevlabs-saidajaula-monster}",
+      "hints": [
+        "Decode your session cookie: what does it hold, and how is it signed?",
+        "Read about integrity checks built from unkeyed hashes."
+      ],
+      "steps": [
+        {
+          "key": "hash",
+          "title": "Identify the signature",
+          "prompt": "Which hash function signs the cookie?",
+          "check": {
+            "answer": [
+              "sha256",
+              "sha-256"
+            ]
+          }
+        },
+        {
+          "key": "route",
+          "title": "Find the target",
+          "prompt": "Which route is reserved for admins? (path)",
+          "check": {
+            "answer": [
+              "/admin",
+              "admin"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
