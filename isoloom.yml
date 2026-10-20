@@ -8,30 +8,39 @@ version: 1
 name: secdevlabs-saidajaula-monster
 
 # Given by the CyberCTF launcher: this player's flag. Without it the development flag.
-inputs: [CTF_FLAG_MAIN]
+inputs:
+  CTF_FLAG_MAIN: {}
 
 networks:
-  lab: { cidr: 10.60.107.0/24, internet: false }
+  lab: {cidr: 10.60.107.0/24, internet: false}
 
 machines:
   db:
-    networks: { lab: 20 }
-    services: [{ port: 3306, name: mariadb }]
-    resources: { cpus: 1, memory_mb: 512 }
-    volumes: { data: /var/lib/mysql }
-    docker:
+    networks: {lab: 20}
+    resources: {cpus: 1, memory_mb: 512}
+    volumes: {data: /var/lib/mysql}
+    ports:
+      mariadb:
+        port: 3306
+    app:
       build: build/db
-
   app:
-    networks: { lab: 10 }
-    services: [{ port: 10002, name: web, http: true, publish: 10002 }]
-    resources: { cpus: 1, memory_mb: 512 }
+    networks: {lab: 10}
+    resources: {cpus: 1, memory_mb: 512}
     depends_on: [db]
-    inputs: [CTF_FLAG_MAIN]
-    volumes: { ctf: /ctf }   # the flag, written by ctf/flag.sh at every start
-    docker:
+    volumes: {ctf: /ctf}     # the flag, written by ctf/flag.sh at every start
+    ports:
+      web:
+        port: 10002
+        protocol: http
+        publish: true
+    files:
+      - path: /run/lab/ctf_flag_main
+        input: CTF_FLAG_MAIN
+    setup:
+      - ctf/flag.sh
+    app:
       build: build/app
-      init: [ctf/flag.sh]
 
 checks:
   - name: the home page answers
@@ -42,5 +51,5 @@ checks:
     wait: 60
 
 message: |
-  SaidaJaula Monster Fit answers at http://localhost:{{ machines.app.services.0.publish }}/.
+  SaidaJaula Monster Fit answers at {{ machines.app.ports.web.url }}.
   Register, log in, and decode the cookie you get. /admin is for admins only.
